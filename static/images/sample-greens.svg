@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#d9d1b7"/>
+  <circle cx="400" cy="310" r="220" fill="#f8f1df" stroke="#b6a17a" stroke-width="12"/>
+  <g fill="#658b55"><ellipse cx="330" cy="285" rx="75" ry="125" transform="rotate(-35 330 285)"/><ellipse cx="440" cy="265" rx="75" ry="135" transform="rotate(25 440 265)"/><ellipse cx="475" cy="385" rx="65" ry="115" transform="rotate(55 475 385)"/><ellipse cx="300" cy="405" rx="60" ry="105" transform="rotate(-55 300 405)"/></g>
+  <g stroke="#dce5b2" stroke-width="12" stroke-linecap="round"><path d="m330 285 80 95"/><path d="m440 265-30 115"/><path d="m475 385-65-5"/><path d="m300 405 110-25"/></g>
+</svg>

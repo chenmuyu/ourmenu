@@ -1,0 +1,34 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationStyle": "custom",
+        "enableShareAppMessage": true
+      }
+    },
+    {
+      "path": "pages/menu-detail/index",
+      "style": {
+        "navigationBarTitleText": "菜单详情"
+      }
+    },
+    {
+      "path": "pages/menu-edit/index",
+      "style": {
+        "navigationBarTitleText": "记录一道菜"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "两人资料"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#efe7d6",
+    "backgroundColor": "#efe7d6"
+  }
+}

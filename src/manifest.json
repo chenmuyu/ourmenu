@@ -1,0 +1,17 @@
+{
+  "name": "两人菜单",
+  "appid": "__UNI__TWO_PERSON_MENU",
+  "description": "记录两个人各自做过的菜",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "wx3e5d48a763401f7d",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true
+  }
+}
