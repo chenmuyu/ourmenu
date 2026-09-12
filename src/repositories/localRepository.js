@@ -1,12 +1,14 @@
-import { normalizeKitchen } from '../domain/menu.js'
+import { normalizeKitchen } from '../domain/kitchen.js'
+import { sortWishes } from '../domain/wish.js'
 
 const KITCHEN_KEY = 'two-person-menu:kitchen'
 const MENUS_KEY = 'two-person-menu:menus'
+const WISHES_KEY = 'two-person-menu:wishes'
 
 const defaultKitchen = normalizeKitchen({
   members: [
-    { id: 'cook-a', name: '阿禾', avatarUrl: '' },
-    { id: 'cook-b', name: '木木', avatarUrl: '' },
+    { id: 'cook-a', name: '我', avatarUrl: '', bound: true },
+    { id: 'cook-b', name: '老公', avatarUrl: '', bound: true },
   ],
 })
 
@@ -71,7 +73,20 @@ export function createLocalRepository({ storage = createUniStorage() } = {}) {
     return clone(Array.isArray(stored) ? stored : defaultMenus)
   }
 
+  function getStoredWishes() {
+    const stored = storage.get(WISHES_KEY)
+    return sortWishes(clone(Array.isArray(stored) ? stored : []))
+  }
+
   return {
+    async getAccessState() {
+      return { role: 'family', memberId: 'cook-a' }
+    },
+
+    async bindFamily() {
+      return { role: 'family', memberId: 'cook-a' }
+    },
+
     async getKitchen() {
       return clone(getStoredKitchen())
     },
@@ -110,6 +125,39 @@ export function createLocalRepository({ storage = createUniStorage() } = {}) {
 
     async deleteMenu(id) {
       storage.set(MENUS_KEY, getStoredMenus().filter((menu) => menu.id !== id))
+    },
+
+    async listWishes() {
+      return getStoredWishes()
+    },
+
+    async getWish(id) {
+      return getStoredWishes().find((wish) => wish.id === id) || null
+    },
+
+    async saveWish(wish) {
+      const wishes = getStoredWishes()
+      const now = Date.now()
+      const record = {
+        coverUrl: '',
+        imageUrls: [],
+        source: '',
+        tastedAt: '',
+        note: '',
+        ...clone(wish),
+        id: wish.id || `wish-${now}-${Math.random().toString(16).slice(2)}`,
+        createdAt: wish.createdAt || now,
+        updatedAt: now,
+      }
+      const index = wishes.findIndex((item) => item.id === record.id)
+      if (index >= 0) wishes.splice(index, 1, record)
+      else wishes.push(record)
+      storage.set(WISHES_KEY, clone(wishes))
+      return clone(record)
+    },
+
+    async deleteWish(id) {
+      storage.set(WISHES_KEY, getStoredWishes().filter((wish) => wish.id !== id))
     },
   }
 }

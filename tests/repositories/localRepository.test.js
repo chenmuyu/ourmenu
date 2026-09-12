@@ -14,6 +14,13 @@ function createMemoryStorage() {
 }
 
 describe('localRepository', () => {
+  it('本地体验模式以家庭成员身份进入', async () => {
+    const repository = createLocalRepository({ storage: createMemoryStorage() })
+
+    expect(await repository.getAccessState()).toEqual({ role: 'family', memberId: 'cook-a' })
+    expect(await repository.bindFamily('0928')).toEqual({ role: 'family', memberId: 'cook-a' })
+  })
+
   it('首次读取时返回固定两位成员和示例菜单', async () => {
     const repository = createLocalRepository({ storage: createMemoryStorage() })
 
@@ -76,5 +83,36 @@ describe('localRepository', () => {
     })
 
     expect((await repository.getKitchen()).members.map((member) => member.id)).toEqual(['a', 'b'])
+  })
+
+  it('保存并重新读取共用底图、食材分组和菜品标签', async () => {
+    const repository = createLocalRepository({ storage: createMemoryStorage() })
+    const kitchen = await repository.getKitchen()
+
+    await repository.saveKitchen({
+      ...kitchen,
+      backgroundUrl: '/loving-background.jpg',
+      groups: [{ id: 'custom', name: '烧烤', active: true, order: 0 }],
+      tags: [{ id: 'anniversary', name: '纪念日', active: true, order: 0 }],
+    })
+
+    expect(await repository.getKitchen()).toMatchObject({
+      backgroundUrl: '/loving-background.jpg',
+      groups: [{ id: 'custom', name: '烧烤', active: true, order: 0 }],
+      tags: [{ id: 'anniversary', name: '纪念日', active: true, order: 0 }],
+    })
+  })
+
+  it('可以新增、更新和删除想吃记录', async () => {
+    const repository = createLocalRepository({ storage: createMemoryStorage() })
+    const saved = await repository.saveWish({ name: '生椰拿铁', status: 'want' })
+
+    expect((await repository.getWish(saved.id)).name).toBe('生椰拿铁')
+
+    await repository.saveWish({ ...saved, status: 'again' })
+    expect((await repository.listWishes()).find((item) => item.id === saved.id)?.status).toBe('again')
+
+    await repository.deleteWish(saved.id)
+    expect(await repository.getWish(saved.id)).toBeNull()
   })
 })
