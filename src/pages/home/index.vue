@@ -67,6 +67,16 @@ function openSettings() {
   uni.navigateTo({ url: '/pages/settings/index' })
 }
 
+function openDiningCreate() {
+  if (!isFamily.value) return
+  uni.navigateTo({ url: '/pages/dining-create/index' })
+}
+
+function openDiningRecords() {
+  if (!isFamily.value) return
+  uni.navigateTo({ url: '/pages/dining-records/index' })
+}
+
 onShow(loadPage)
 onShareAppMessage(() => createHomeSharePayload('粤湘情'))
 </script>
@@ -92,6 +102,21 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
 
     <view v-if="errorMessage" class="error-strip" @tap="loadPage">
       <text>{{ errorMessage }}，点此重试</text>
+    </view>
+
+    <view v-if="isFamily" class="dining-invite-card">
+      <view class="dining-invite-card__copy">
+        <text class="dining-invite-card__eyebrow">粤湘情小菜馆</text>
+        <text class="dining-invite-card__title">今天，想吃什么？</text>
+        <text class="dining-invite-card__hint">定个日子，把菜单递给想念的人。</text>
+      </view>
+      <view class="dining-invite-card__actions">
+        <button class="dining-action dining-action--primary" @tap="openDiningCreate">
+          <text class="dining-action__mark">＋</text>
+          <text>欢迎点菜</text>
+        </button>
+        <button class="dining-action dining-action--quiet" @tap="openDiningRecords">点菜记录</button>
+      </view>
     </view>
 
     <scroll-view class="group-rail" scroll-x :show-scrollbar="false">
@@ -133,7 +158,7 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
   position: relative;
   min-height: 100vh;
   padding-bottom: calc(88rpx + env(safe-area-inset-bottom));
-  overflow: hidden;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 85% 8%, rgba(255, 193, 181, 0.54), transparent 28%),
     linear-gradient(150deg, #fffdf9 0%, #fff1ed 54%, #ffd9d3 100%);
@@ -285,10 +310,104 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
 
 .book-shell,
 .error-strip,
-.mode-note {
+.mode-note,
+.dining-invite-card {
   position: relative;
   z-index: 2;
 }
+
+.dining-invite-card {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  margin: 0 28rpx 22rpx;
+  padding: 28rpx 26rpx 24rpx 30rpx;
+  overflow: hidden;
+  color: #fffaf6;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(250, 196, 176, 0.32), transparent 34%),
+    linear-gradient(128deg, #542b35 0%, #73323f 62%, #9e4854 100%);
+  border: 2rpx solid rgba(255, 255, 255, 0.28);
+  border-radius: 34rpx 14rpx 34rpx 14rpx;
+  box-shadow: 0 18rpx 40rpx rgba(84, 43, 53, 0.22);
+}
+
+.dining-invite-card::after {
+  position: absolute;
+  right: -24rpx;
+  bottom: -54rpx;
+  width: 160rpx;
+  height: 160rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  content: '';
+}
+
+.dining-invite-card__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding-right: 18rpx;
+}
+
+.dining-invite-card__eyebrow {
+  color: #f3c58e;
+  font-size: 19rpx;
+  font-weight: 700;
+  letter-spacing: 5rpx;
+}
+
+.dining-invite-card__title {
+  margin-top: 10rpx;
+  font-family: 'Kaiti SC', 'STKaiti', serif;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.dining-invite-card__hint {
+  margin-top: 8rpx;
+  color: rgba(255, 250, 246, 0.7);
+  font-size: 20rpx;
+  line-height: 1.55;
+}
+
+.dining-invite-card__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12rpx;
+  width: 190rpx;
+}
+
+.dining-action {
+  width: 100%;
+  height: 62rpx;
+  margin: 0;
+  padding: 0 14rpx;
+  border-radius: 31rpx 10rpx 31rpx 10rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 60rpx;
+}
+
+.dining-action--primary {
+  color: #5b303a;
+  background: #fff8ef;
+  box-shadow: 0 10rpx 22rpx rgba(48, 18, 26, 0.2);
+}
+
+.dining-action--quiet {
+  color: rgba(255, 250, 246, 0.82);
+  background: rgba(255, 255, 255, 0.08);
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.dining-action__mark { margin-right: 6rpx; font-size: 28rpx; font-weight: 400; }
 
 .error-strip {
   margin: 8rpx 36rpx 20rpx;

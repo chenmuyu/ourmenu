@@ -47,6 +47,30 @@
       "style": {
         "navigationBarTitleText": "两人资料"
       }
+    },
+    {
+      "path": "pages/dining-create/index",
+      "style": {
+        "navigationBarTitleText": "欢迎点菜"
+      }
+    },
+    {
+      "path": "pages/dining-order/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/dining-records/index",
+      "style": {
+        "navigationBarTitleText": "点菜记录"
+      }
+    },
+    {
+      "path": "pages/dining-manage/index",
+      "style": {
+        "navigationBarTitleText": "聚餐详情"
+      }
     }
   ],
   "globalStyle": {
