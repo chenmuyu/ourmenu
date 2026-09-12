@@ -1,79 +1,13 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { clampSwipeOffset, resolveOpenedMenu } from '../domain/swipe.js'
+import { getMenuThumbnail } from '../domain/menu.js'
 
-const props = defineProps({
+defineProps({
   menus: { type: Array, default: () => [] },
   cookName: { type: String, default: '' },
   loading: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['open', 'delete'])
-const actionWidth = 76
-const openedId = ref('')
-const draggingId = ref('')
-const startX = ref(0)
-const dragOffset = ref(0)
-const didDrag = ref(false)
-
-function touchX(event, changed = false) {
-  const touches = changed ? event.changedTouches : event.touches
-  return touches?.[0]?.clientX ?? 0
-}
-
-function startSwipe(event, id) {
-  draggingId.value = id
-  startX.value = touchX(event)
-  dragOffset.value = openedId.value === id ? -actionWidth : 0
-  didDrag.value = false
-}
-
-function moveSwipe(event, id) {
-  if (draggingId.value !== id) return
-  const distance = touchX(event) - startX.value
-  if (Math.abs(distance) > 5) didDrag.value = true
-  dragOffset.value = clampSwipeOffset(distance, openedId.value === id, actionWidth)
-}
-
-function endSwipe(event, id) {
-  if (draggingId.value !== id) return
-  openedId.value = resolveOpenedMenu({
-    id,
-    openedId: openedId.value,
-    startX: startX.value,
-    endX: touchX(event, true),
-  })
-  draggingId.value = ''
-}
-
-function rowStyle(id) {
-  const offset = draggingId.value === id ? dragOffset.value : openedId.value === id ? -actionWidth : 0
-  return `transform: translateX(${offset}px)`
-}
-
-function openMenu(id) {
-  if (didDrag.value) {
-    didDrag.value = false
-    return
-  }
-  if (openedId.value) {
-    openedId.value = ''
-    return
-  }
-  emit('open', id)
-}
-
-function requestDelete(id) {
-  openedId.value = ''
-  emit('delete', id)
-}
-
-watch(
-  () => props.menus,
-  () => {
-    openedId.value = ''
-  },
-)
+const emit = defineEmits(['open'])
 </script>
 
 <template>
@@ -92,20 +26,16 @@ watch(
     </view>
 
     <view v-else class="menu-book__list">
-      <view v-for="menu in menus" :key="menu.id" class="menu-row-shell">
-        <button class="menu-row__delete" @tap.stop="requestDelete(menu.id)">删除</button>
-        <button
-          class="menu-row"
-          :class="{ 'menu-row--dragging': draggingId === menu.id }"
-          :style="rowStyle(menu.id)"
-          @touchstart="startSwipe($event, menu.id)"
-          @touchmove.stop.prevent="moveSwipe($event, menu.id)"
-          @touchend="endSwipe($event, menu.id)"
-          @tap="openMenu(menu.id)"
-        >
-          <text class="menu-row__name">{{ menu.name }}</text>
-        </button>
-      </view>
+      <button v-for="menu in menus" :key="menu.id" class="menu-row" @tap="emit('open', menu.id)">
+        <text class="menu-row__name">{{ menu.name }}</text>
+        <image
+          v-if="getMenuThumbnail(menu)"
+          class="menu-row__thumbnail"
+          :src="getMenuThumbnail(menu)"
+          mode="aspectFill"
+        />
+        <view v-else class="menu-row__thumbnail menu-row__thumbnail--empty">菜</view>
+      </button>
     </view>
   </view>
 </template>
@@ -162,57 +92,23 @@ watch(
   width: 100%;
 }
 
-.menu-row-shell {
-  position: relative;
-  width: 100%;
-  min-height: 100rpx;
-  overflow: hidden;
-  background: var(--red);
-  border-bottom: 2rpx solid var(--line);
-}
-
 .menu-row {
-  position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
   width: 100%;
   min-height: 100rpx;
   margin: 0;
-  padding: 0 4rpx;
+  padding: 12rpx 4rpx;
   color: var(--ink);
   background: var(--paper);
+  border-bottom: 2rpx solid var(--line);
   border-radius: 0;
   text-align: left;
   line-height: 1.4;
-  transition: transform 180ms ease-out;
-  will-change: transform;
 }
 
 .menu-row:active {
   background: rgba(185, 65, 52, 0.055);
-}
-
-.menu-row--dragging {
-  transition: none;
-}
-
-.menu-row__delete {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  right: 0;
-  width: 152rpx;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  color: #fffaf0;
-  background: var(--red);
-  border-radius: 0;
-  font-size: 26rpx;
-  font-weight: 700;
-  letter-spacing: 3rpx;
-  line-height: 100rpx;
 }
 
 .menu-row__name {
@@ -224,6 +120,26 @@ watch(
   letter-spacing: 4rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.menu-row__thumbnail {
+  flex: 0 0 auto;
+  width: 72rpx;
+  height: 72rpx;
+  margin-left: 24rpx;
+  background: var(--paper-deep);
+  border: 4rpx solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 5rpx 14rpx rgba(74, 56, 36, 0.18);
+}
+
+.menu-row__thumbnail--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(185, 65, 52, 0.55);
+  font-family: 'STSong', 'Songti SC', serif;
+  font-size: 24rpx;
 }
 
 .menu-book__state {

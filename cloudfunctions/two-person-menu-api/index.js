@@ -1,4 +1,5 @@
 const cloud = require('wx-server-sdk')
+const { migrateToSharedAccess } = require('./binding')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -21,7 +22,7 @@ function publicMenu(menu) {
   return { id: _id, ...fields }
 }
 
-async function getOrJoinKitchen(openid) {
+async function getSharedKitchen() {
   const found = await kitchens.where({ slug: KITCHEN_SLUG }).limit(1).get()
   let kitchen = found.data[0]
 
@@ -31,9 +32,11 @@ async function getOrJoinKitchen(openid) {
         slug: KITCHEN_SLUG,
         name: '两人菜单',
         members: [
-          { id: 'cook-a', name: '第一位', avatarUrl: '', openid },
-          { id: 'cook-b', name: '第二位', avatarUrl: '', openid: '' },
+          { id: 'cook-a', name: '第一位', avatarUrl: '' },
+          { id: 'cook-b', name: '第二位', avatarUrl: '' },
         ],
+        developerOpenids: [],
+        accessModelVersion: 3,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
@@ -41,16 +44,20 @@ async function getOrJoinKitchen(openid) {
     kitchen = (await kitchens.doc(created._id).get()).data
   }
 
-  if (kitchen.members.some((member) => member.openid === openid)) return kitchen
+  const migration = migrateToSharedAccess(kitchen)
+  if (migration.changed) {
+    kitchen = migration.kitchen
+    await kitchens.doc(kitchen._id).update({
+      data: {
+        members: kitchen.members,
+        developerOpenids: kitchen.developerOpenids,
+        accessModelVersion: kitchen.accessModelVersion,
+        updatedAt: Date.now(),
+      },
+    })
+  }
 
-  const emptyIndex = kitchen.members.findIndex((member) => !member.openid)
-  if (emptyIndex === -1) throw new Error('这个菜单册已经绑定两个人')
-
-  const members = kitchen.members.map((member, index) =>
-    index === emptyIndex ? { ...member, openid } : member,
-  )
-  await kitchens.doc(kitchen._id).update({ data: { members, updatedAt: Date.now() } })
-  return { ...kitchen, members }
+  return kitchen
 }
 
 function ensureMenu(menu, kitchen) {
@@ -62,8 +69,8 @@ function ensureMenu(menu, kitchen) {
   }
 }
 
-async function handle(action, payload, openid) {
-  const kitchen = await getOrJoinKitchen(openid)
+async function handle(action, payload) {
+  const kitchen = await getSharedKitchen()
 
   if (action === 'getKitchen') return publicKitchen(kitchen)
 
@@ -131,8 +138,7 @@ async function handle(action, payload, openid) {
 
 exports.main = async (event) => {
   try {
-    const { OPENID } = cloud.getWXContext()
-    return { ok: true, data: await handle(event.action, event, OPENID) }
+    return { ok: true, data: await handle(event.action, event) }
   } catch (error) {
     console.error(error)
     return { ok: false, message: error.message || '云端操作失败' }

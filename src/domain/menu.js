@@ -14,6 +14,10 @@ export function getMenusByCook(menus = [], cookId) {
     })
 }
 
+export function getMenuThumbnail(menu = {}) {
+  return String(menu.coverUrl || '').trim()
+}
+
 export function validateMenu(menu = {}, members = []) {
   if (!String(menu.name || '').trim()) return { valid: false, message: '请填写菜名' }
   if (!menu.cookId) return { valid: false, message: '请选择掌勺人' }

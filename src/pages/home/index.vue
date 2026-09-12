@@ -46,27 +46,6 @@ function openSettings() {
   uni.navigateTo({ url: '/pages/settings/index' })
 }
 
-function confirmDelete(id) {
-  const menu = menus.value.find((item) => item.id === id)
-  if (!menu) return
-  uni.showModal({
-    title: `删除“${menu.name}”？`,
-    content: '删除后两个人都将看不到这条记录，且无法恢复。',
-    confirmText: '删除',
-    confirmColor: '#b94134',
-    success: async ({ confirm }) => {
-      if (!confirm) return
-      try {
-        await repository.deleteMenu(id)
-        menus.value = menus.value.filter((item) => item.id !== id)
-        uni.showToast({ title: '已删除', icon: 'success' })
-      } catch (error) {
-        uni.showToast({ title: error?.message || '删除失败，请重试', icon: 'none' })
-      }
-    },
-  })
-}
-
 onShow(loadPage)
 onShareAppMessage(() => createHomeSharePayload(kitchen.value.name))
 </script>
@@ -92,7 +71,6 @@ onShareAppMessage(() => createHomeSharePayload(kitchen.value.name))
         :cook-name="currentCook?.name"
         :loading="loading"
         @open="openMenu"
-        @delete="confirmDelete"
       />
     </view>
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getMenusByCook, normalizeKitchen, validateMenu } from '../../src/domain/menu.js'
+import { getMenuThumbnail, getMenusByCook, normalizeKitchen, validateMenu } from '../../src/domain/menu.js'
 
 describe('getMenusByCook', () => {
   it('只返回指定掌勺人的菜单，并按日期和创建时间倒序排列', () => {
@@ -15,6 +15,16 @@ describe('getMenusByCook', () => {
 
   it('缺少菜单数据时返回空数组', () => {
     expect(getMenusByCook(undefined, 'cook-a')).toEqual([])
+  })
+})
+
+describe('getMenuThumbnail', () => {
+  it('使用封面图作为列表缩略图', () => {
+    expect(getMenuThumbnail({ coverUrl: ' cloud://dish.jpg ' })).toBe('cloud://dish.jpg')
+  })
+
+  it('封面不存在时返回空地址', () => {
+    expect(getMenuThumbnail({})).toBe('')
   })
 })
 
