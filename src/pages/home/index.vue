@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { onShareAppMessage, onShow } from '@dcloudio/uni-app'
 import { accessState, loadAccess } from '../../access/session.js'
-import BottomNav from '../../components/BottomNav.vue'
 import CookTabs from '../../components/CookTabs.vue'
 import MenuBook from '../../components/MenuBook.vue'
 import { getMenusByCook } from '../../domain/menu.js'
@@ -15,6 +14,7 @@ const menus = ref([])
 const selectedCookId = ref('')
 const selectedGroupId = ref('')
 const loading = ref(true)
+const hasLoaded = ref(false)
 const errorMessage = ref('')
 
 const isFamily = computed(() => accessState.role === 'family')
@@ -27,7 +27,7 @@ const emptyCopy = computed(() =>
 )
 
 async function loadPage() {
-  loading.value = true
+  if (!hasLoaded.value) loading.value = true
   errorMessage.value = ''
   try {
     const access = await loadAccess(repository)
@@ -49,6 +49,7 @@ async function loadPage() {
     errorMessage.value = error?.message || '菜单加载失败'
   } finally {
     loading.value = false
+    hasLoaded.value = true
   }
 }
 
@@ -124,7 +125,6 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
       <text class="add-button__plus">＋</text>
       <text class="add-button__label">记一道菜</text>
     </button>
-    <BottomNav active="kitchen" />
   </view>
 </template>
 
@@ -132,7 +132,7 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
 .home-page {
   position: relative;
   min-height: 100vh;
-  padding-bottom: calc(190rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(88rpx + env(safe-area-inset-bottom));
   overflow: hidden;
   background:
     radial-gradient(circle at 85% 8%, rgba(255, 193, 181, 0.54), transparent 28%),
@@ -313,7 +313,7 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
   position: fixed;
   z-index: 21;
   right: 42rpx;
-  bottom: calc(142rpx + env(safe-area-inset-bottom));
+  bottom: calc(28rpx + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   width: auto;

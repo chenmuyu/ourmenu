@@ -53,5 +53,21 @@
     "navigationBarTextStyle": "black",
     "navigationBarBackgroundColor": "#fff9f5",
     "backgroundColor": "#fff9f5"
+  },
+  "tabBar": {
+    "color": "#9b8a88",
+    "selectedColor": "#e66f75",
+    "backgroundColor": "#fffdfb",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "粤湘情"
+      },
+      {
+        "pagePath": "pages/wish-home/index",
+        "text": "想吃这个"
+      }
+    ]
   }
 }

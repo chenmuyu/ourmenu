@@ -34,7 +34,7 @@ async function loadPage(options) {
     const access = await loadAccess(repository)
     if (access.role !== 'family') {
       uni.showToast({ title: '只有家庭成员可以记录心愿', icon: 'none' })
-      setTimeout(() => uni.reLaunch({ url: '/pages/wish-home/index' }), 300)
+      setTimeout(() => uni.switchTab({ url: '/pages/wish-home/index' }), 300)
       return
     }
 
@@ -133,7 +133,7 @@ function deleteWish() {
       await repository.deleteWish(wishId.value)
       dirty.value = false
       allowLeave.value = true
-      uni.reLaunch({ url: '/pages/wish-home/index' })
+      uni.switchTab({ url: '/pages/wish-home/index' })
     },
   })
 }

@@ -12,7 +12,7 @@ const errorMessage = ref('')
 const digits = computed(() => Array.from({ length: 4 }, (_, index) => code.value[index] || ''))
 
 function enterHome() {
-  uni.reLaunch({ url: '/pages/home/index' })
+  uni.switchTab({ url: '/pages/home/index' })
 }
 
 async function resolveEntry() {

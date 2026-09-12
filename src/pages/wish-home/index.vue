@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { onShareAppMessage, onShow } from '@dcloudio/uni-app'
 import { accessState, loadAccess } from '../../access/session.js'
-import BottomNav from '../../components/BottomNav.vue'
 import SteamPlate from '../../components/SteamPlate.vue'
 import { getWishThumbnail, sortWishes, WISH_STATUSES } from '../../domain/wish.js'
 import { repository } from '../../repositories/index.js'
@@ -12,6 +11,7 @@ const kitchen = ref({ backgroundUrl: '' })
 const wishes = ref([])
 const selectedStatus = ref('want')
 const loading = ref(true)
+const hasLoaded = ref(false)
 const errorMessage = ref('')
 
 const isFamily = computed(() => accessState.role === 'family')
@@ -19,7 +19,7 @@ const currentWishes = computed(() => sortWishes(wishes.value.filter((wish) => wi
 const currentStatus = computed(() => WISH_STATUSES.find((status) => status.id === selectedStatus.value))
 
 async function loadPage() {
-  loading.value = true
+  if (!hasLoaded.value) loading.value = true
   errorMessage.value = ''
   try {
     const access = await loadAccess(repository)
@@ -34,6 +34,7 @@ async function loadPage() {
     errorMessage.value = error?.message || '想吃清单加载失败'
   } finally {
     loading.value = false
+    hasLoaded.value = true
   }
 }
 
@@ -102,7 +103,6 @@ onShareAppMessage(() => ({ title: '老公我要吃这个！', path: '/pages/entr
       <text class="add-button__plus">＋</text>
       <text>记下心动</text>
     </button>
-    <BottomNav active="wish" />
   </view>
 </template>
 
@@ -110,7 +110,7 @@ onShareAppMessage(() => ({ title: '老公我要吃这个！', path: '/pages/entr
 .wish-page {
   position: relative;
   min-height: 100vh;
-  padding-bottom: calc(190rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(88rpx + env(safe-area-inset-bottom));
   overflow: hidden;
   background: linear-gradient(155deg, #fffdfb, #ffe8e2 58%, #ffd5d2);
 }
@@ -216,7 +216,7 @@ onShareAppMessage(() => ({ title: '老公我要吃这个！', path: '/pages/entr
   position: fixed;
   z-index: 21;
   right: 42rpx;
-  bottom: calc(142rpx + env(safe-area-inset-bottom));
+  bottom: calc(28rpx + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   width: auto;

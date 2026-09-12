@@ -18,7 +18,7 @@ async function loadPage() {
     const access = await loadAccess(repository)
     if (access.role !== 'family') {
       uni.showToast({ title: '只有家庭成员可以打开小家设置', icon: 'none' })
-      setTimeout(() => uni.reLaunch({ url: '/pages/home/index' }), 300)
+      setTimeout(() => uni.switchTab({ url: '/pages/home/index' }), 300)
       return
     }
     const current = await repository.getKitchen()
