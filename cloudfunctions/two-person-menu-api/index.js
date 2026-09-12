@@ -212,12 +212,12 @@ async function handle(action, payload, openid) {
     if (getDiningInviteStatus(invite) === 'closed') throw new Error('这次点菜已经结束')
 
     const input = normalizeDiningOrderInput(payload.order)
-    const menuRecords = await loadMenusByIds(input.menuIds)
-    const menuItems = buildMenuSnapshots(input.menuIds, menuRecords, kitchen)
-    if (!menuItems.length && !input.customDishNames.length) throw new Error('至少选择或输入一道菜')
-
     const id = orderDocumentId(payload.inviteId, openid)
     const current = await getDocumentOrNull(diningOrders, id)
+    const menuRecords = await loadMenusByIds(input.menuIds)
+    const menuItems = buildMenuSnapshots(input.menuIds, menuRecords, kitchen, current?.menuItems || [])
+    if (!menuItems.length && !input.customDishNames.length) throw new Error('至少选择或输入一道菜')
+
     const now = Date.now()
     const data = {
       inviteId: payload.inviteId,

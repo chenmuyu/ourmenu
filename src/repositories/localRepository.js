@@ -254,17 +254,22 @@ export function createLocalRepository({ storage = createUniStorage() } = {}) {
 
       const kitchen = getStoredKitchen()
       const menuIds = new Set(Array.isArray(order.menuIds) ? order.menuIds : [])
-      const menuItems = getStoredMenus()
-        .filter((menu) => menuIds.has(menu.id))
-        .map((menu) => buildMenuSnapshot(menu, kitchen))
-      const customDishNames = normalizeCustomDishNames(order.customDishNames)
-      const validation = validateDiningOrder({ menuItems, customDishNames })
-      if (!validation.valid) throw new Error(validation.message)
-
       const orders = getStoredDiningOrders()
       const index = orders.findIndex(
         (item) => item.inviteId === inviteId && item.participantId === LOCAL_PARTICIPANT_ID,
       )
+      const currentMenus = new Map(getStoredMenus().map((menu) => [menu.id, menu]))
+      const previousItems = new Map((index >= 0 ? orders[index].menuItems : []).map((menu) => [menu.id, menu]))
+      const menuItems = [...menuIds]
+        .map((id) => {
+          const menu = currentMenus.get(id)
+          return menu ? buildMenuSnapshot(menu, kitchen) : previousItems.get(id)
+        })
+        .filter(Boolean)
+      const customDishNames = normalizeCustomDishNames(order.customDishNames)
+      const validation = validateDiningOrder({ menuItems, customDishNames })
+      if (!validation.valid) throw new Error(validation.message)
+
       const now = Date.now()
       const record = {
         id: index >= 0 ? orders[index].id : `order-${now}-${Math.random().toString(16).slice(2)}`,

@@ -164,4 +164,17 @@ describe('localRepository', () => {
       expect.objectContaining({ id: invite.id, participantCount: 1, dishCount: 2 }),
     ])
   })
+
+  it('菜谱删除后重新提交仍保留原有菜名快照', async () => {
+    const repository = createLocalRepository({ storage: createMemoryStorage() })
+    const invite = await repository.createDiningInvite({ theme: '家宴', diningDate: '2099-09-28' })
+    await repository.saveMyDiningOrder(invite.id, { menuIds: ['sample-1'], customDishNames: [] })
+
+    await repository.deleteMenu('sample-1')
+    await repository.saveMyDiningOrder(invite.id, { menuIds: ['sample-1'], customDishNames: [] })
+
+    expect(await repository.getMyDiningOrder(invite.id)).toMatchObject({
+      menuItems: [expect.objectContaining({ id: 'sample-1', name: '番茄炒蛋' })],
+    })
+  })
 })

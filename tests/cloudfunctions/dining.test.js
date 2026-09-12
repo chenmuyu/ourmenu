@@ -87,6 +87,21 @@ describe('cloud dining helpers', () => {
     ])
   })
 
+  it('菜谱删除后继续保留点菜单里的历史快照', () => {
+    const { buildMenuSnapshots } = require('../../cloudfunctions/two-person-menu-api/dining.js')
+    const historical = {
+      id: 'menu-1',
+      name: '清蒸鲈鱼',
+      cookId: 'cook-a',
+      cookName: '我',
+      groupId: 'fish',
+      tagIds: ['signature'],
+      thumbnailUrl: '/fish.jpg',
+    }
+
+    expect(buildMenuSnapshots(['menu-1'], [], { members: [] }, [historical])).toEqual([historical])
+  })
+
   it('公开数据不会暴露创建人和点菜人 OpenID', () => {
     const { publicDiningInvite, publicDiningOrder } = require('../../cloudfunctions/two-person-menu-api/dining.js')
     const invite = publicDiningInvite({

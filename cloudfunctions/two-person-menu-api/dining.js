@@ -81,21 +81,38 @@ function participantNameForAccess(access, kitchen, suppliedName) {
   return String(suppliedName || '').trim().slice(0, 20) || '客人'
 }
 
-function buildMenuSnapshots(menuIds = [], menus = [], kitchen = {}) {
+function buildMenuSnapshots(menuIds = [], menus = [], kitchen = {}, previousItems = []) {
   const byId = new Map(menus.map((menu) => [String(menu._id || menu.id || ''), menu]))
   const members = new Map((kitchen.members || []).map((member) => [member.id, member]))
+  const previousById = new Map(previousItems.map((menu) => [String(menu.id || ''), menu]))
   return uniqueStrings(menuIds, 100, 100)
-    .map((id) => byId.get(id))
+    .map((id) => {
+      const menu = byId.get(id)
+      if (!menu) {
+        const previous = previousById.get(id)
+        return previous
+          ? {
+              id,
+              name: String(previous.name || '').trim(),
+              cookId: String(previous.cookId || ''),
+              cookName: String(previous.cookName || ''),
+              groupId: String(previous.groupId || ''),
+              tagIds: Array.isArray(previous.tagIds) ? previous.tagIds.slice(0, 12) : [],
+              thumbnailUrl: String(previous.thumbnailUrl || ''),
+            }
+          : null
+      }
+      return {
+        id: String(menu._id || menu.id || ''),
+        name: String(menu.name || '').trim(),
+        cookId: String(menu.cookId || ''),
+        cookName: String(members.get(menu.cookId)?.name || ''),
+        groupId: String(menu.groupId || ''),
+        tagIds: Array.isArray(menu.tagIds) ? menu.tagIds.slice(0, 12) : [],
+        thumbnailUrl: String(menu.coverUrl || menu.imageUrls?.[0] || '').trim(),
+      }
+    })
     .filter(Boolean)
-    .map((menu) => ({
-      id: String(menu._id || menu.id || ''),
-      name: String(menu.name || '').trim(),
-      cookId: String(menu.cookId || ''),
-      cookName: String(members.get(menu.cookId)?.name || ''),
-      groupId: String(menu.groupId || ''),
-      tagIds: Array.isArray(menu.tagIds) ? menu.tagIds.slice(0, 12) : [],
-      thumbnailUrl: String(menu.coverUrl || menu.imageUrls?.[0] || '').trim(),
-    }))
 }
 
 function publicDiningInvite(record, now = Date.now()) {
