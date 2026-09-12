@@ -19,6 +19,7 @@ describe('syncCloudFunctions', () => {
     mkdirSync(join(source, 'node_modules'), { recursive: true })
     mkdirSync(output, { recursive: true })
     writeFileSync(join(source, 'index.js'), 'exports.main = () => true')
+    writeFileSync(join(source, 'dining.js'), 'exports.status = () => "open"')
     writeFileSync(join(source, 'node_modules', 'ignored.js'), 'ignore me')
     writeFileSync(join(output, 'project.config.json'), JSON.stringify({ appid: 'wx-test' }))
 
@@ -26,6 +27,9 @@ describe('syncCloudFunctions', () => {
 
     expect(readFileSync(join(output, 'cloudfunctions', 'two-person-menu-api', 'index.js'), 'utf8')).toContain(
       'exports.main',
+    )
+    expect(readFileSync(join(output, 'cloudfunctions', 'two-person-menu-api', 'dining.js'), 'utf8')).toContain(
+      'exports.status',
     )
     expect(() => readFileSync(join(output, 'cloudfunctions', 'two-person-menu-api', 'node_modules', 'ignored.js'))).toThrow()
     expect(JSON.parse(readFileSync(join(output, 'project.config.json'), 'utf8'))).toMatchObject({

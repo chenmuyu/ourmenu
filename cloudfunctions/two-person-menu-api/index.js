@@ -1,5 +1,16 @@
 const cloud = require('wx-server-sdk')
 const { assertCanWrite, bindFamilyMember, publicMembers, resolveAccess } = require('./binding')
+const {
+  buildMenuSnapshots,
+  getDiningInviteStatus,
+  normalizeCustomDishNames,
+  normalizeDiningInviteInput,
+  normalizeDiningOrderInput,
+  orderDocumentId,
+  participantNameForAccess,
+  publicDiningInvite,
+  publicDiningOrder,
+} = require('./dining')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
@@ -7,6 +18,8 @@ const database = cloud.database()
 const kitchens = database.collection('kitchens')
 const menus = database.collection('menus')
 const wishes = database.collection('wishes')
+const diningInvites = database.collection('diningInvites')
+const diningOrders = database.collection('diningOrders')
 const KITCHEN_SLUG = 'two-person-menu'
 
 const DEFAULT_GROUPS = [
@@ -102,6 +115,22 @@ function cloudFiles(record) {
   return [record?.coverUrl, ...(record?.imageUrls || [])].filter((url) => String(url).startsWith('cloud://'))
 }
 
+async function getDocumentOrNull(collection, id) {
+  if (!id) return null
+  try {
+    return (await collection.doc(id).get()).data
+  } catch (error) {
+    if (String(error.errMsg || error.message).includes('not found')) return null
+    throw error
+  }
+}
+
+async function loadMenusByIds(menuIds) {
+  if (!menuIds.length) return []
+  const result = await menus.where({ _id: database.command.in(menuIds) }).limit(100).get()
+  return result.data
+}
+
 async function bindFamily(payload, openid) {
   const kitchen = await getOrCreateKitchen()
   return database.runTransaction(async (transaction) => {
@@ -124,6 +153,108 @@ async function handle(action, payload, openid) {
 
   if (action === 'getAccessState') return access
   if (action === 'getKitchen') return publicKitchen(kitchen)
+
+  if (action === 'createDiningInvite') {
+    assertCanWrite(access)
+    const input = normalizeDiningInviteInput(payload.invite)
+    const now = Date.now()
+    const created = await diningInvites.add({
+      data: { ...input, createdBy: openid, createdAt: now, updatedAt: now },
+    })
+    return { ...publicDiningInvite(await getDocumentOrNull(diningInvites, created._id)), participantCount: 0, dishCount: 0 }
+  }
+
+  if (action === 'getDiningInvite') {
+    return publicDiningInvite(await getDocumentOrNull(diningInvites, payload.inviteId))
+  }
+
+  if (action === 'listDiningInvites') {
+    assertCanWrite(access)
+    const result = await diningInvites.orderBy('diningDate', 'desc').orderBy('createdAt', 'desc').limit(50).get()
+    return Promise.all(
+      result.data.map(async (invite) => {
+        const orderResult = await diningOrders.where({ inviteId: invite._id }).limit(100).get()
+        return {
+          ...publicDiningInvite(invite),
+          participantCount: orderResult.data.length,
+          dishCount: orderResult.data.reduce(
+            (total, order) => total + (order.menuItems || []).length + (order.customDishNames || []).length,
+            0,
+          ),
+        }
+      }),
+    )
+  }
+
+  if (action === 'saveDiningInvite') {
+    assertCanWrite(access)
+    const invite = payload.invite || {}
+    const current = await getDocumentOrNull(diningInvites, invite.id)
+    if (!current) throw new Error('点菜邀请不存在')
+    const input = normalizeDiningInviteInput(invite)
+    const data = { ...input, updatedAt: Date.now() }
+    await diningInvites.doc(invite.id).update({ data })
+
+    const nextFiles = new Set(cloudFiles(input))
+    const removedFiles = cloudFiles(current).filter((file) => !nextFiles.has(file))
+    if (removedFiles.length) await cloud.deleteFile({ fileList: removedFiles })
+    return publicDiningInvite({ ...current, ...data })
+  }
+
+  if (action === 'getMyDiningOrder') {
+    const id = orderDocumentId(payload.inviteId, openid)
+    return publicDiningOrder(await getDocumentOrNull(diningOrders, id))
+  }
+
+  if (action === 'saveMyDiningOrder') {
+    const invite = await getDocumentOrNull(diningInvites, payload.inviteId)
+    if (!invite) throw new Error('点菜邀请不存在')
+    if (getDiningInviteStatus(invite) === 'closed') throw new Error('这次点菜已经结束')
+
+    const input = normalizeDiningOrderInput(payload.order)
+    const menuRecords = await loadMenusByIds(input.menuIds)
+    const menuItems = buildMenuSnapshots(input.menuIds, menuRecords, kitchen)
+    if (!menuItems.length && !input.customDishNames.length) throw new Error('至少选择或输入一道菜')
+
+    const id = orderDocumentId(payload.inviteId, openid)
+    const current = await getDocumentOrNull(diningOrders, id)
+    const now = Date.now()
+    const data = {
+      inviteId: payload.inviteId,
+      participantOpenid: openid,
+      participantName: participantNameForAccess(access, kitchen, input.participantName),
+      menuItems,
+      customDishNames: input.customDishNames,
+      createdAt: current?.createdAt || now,
+      updatedAt: now,
+    }
+    await diningOrders.doc(id).set({ data })
+    return publicDiningOrder({ _id: id, ...data })
+  }
+
+  if (action === 'listDiningOrders') {
+    assertCanWrite(access)
+    const invite = await getDocumentOrNull(diningInvites, payload.inviteId)
+    if (!invite) throw new Error('点菜邀请不存在')
+    const result = await diningOrders.where({ inviteId: payload.inviteId }).orderBy('updatedAt', 'desc').limit(100).get()
+    return result.data.map(publicDiningOrder)
+  }
+
+  if (action === 'saveDiningOrder') {
+    assertCanWrite(access)
+    const order = payload.order || {}
+    const current = await getDocumentOrNull(diningOrders, order.id)
+    if (!current || current.inviteId !== payload.inviteId) throw new Error('点菜单不存在')
+    const customDishNames = normalizeCustomDishNames(order.customDishNames)
+    if (!(current.menuItems || []).length && !customDishNames.length) throw new Error('至少选择或输入一道菜')
+    const data = {
+      participantName: String(order.participantName ?? current.participantName).trim().slice(0, 20) || '客人',
+      customDishNames,
+      updatedAt: Date.now(),
+    }
+    await diningOrders.doc(order.id).update({ data })
+    return publicDiningOrder({ ...current, ...data })
+  }
 
   if (action === 'saveKitchen') {
     assertCanWrite(access)
