@@ -115,4 +115,53 @@ describe('localRepository', () => {
     await repository.deleteWish(saved.id)
     expect(await repository.getWish(saved.id)).toBeNull()
   })
+
+  it('可以创建、读取、更新并汇总点菜邀请', async () => {
+    const repository = createLocalRepository({ storage: createMemoryStorage() })
+    const created = await repository.createDiningInvite({ theme: '周末聚餐', diningDate: '2026-09-20' })
+
+    expect(await repository.getDiningInvite(created.id)).toMatchObject({
+      id: created.id,
+      theme: '周末聚餐',
+      diningDate: '2026-09-20',
+      imageUrls: [],
+    })
+
+    await repository.saveDiningInvite({ ...created, theme: '周日家宴', imageUrls: ['/dinner.jpg'] })
+    expect(await repository.getDiningInvite(created.id)).toMatchObject({
+      theme: '周日家宴',
+      imageUrls: ['/dinner.jpg'],
+    })
+
+    expect(await repository.listDiningInvites()).toEqual([
+      expect.objectContaining({ id: created.id, participantCount: 0, dishCount: 0 }),
+    ])
+  })
+
+  it('同一人在同一邀请下重复提交会更新当前点菜单', async () => {
+    const repository = createLocalRepository({ storage: createMemoryStorage() })
+    const invite = await repository.createDiningInvite({ theme: '今天吃什么', diningDate: '2099-09-28' })
+
+    const first = await repository.saveMyDiningOrder(invite.id, {
+      participantName: '老公',
+      menuIds: ['sample-1'],
+      customDishNames: ['烤串'],
+    })
+    const second = await repository.saveMyDiningOrder(invite.id, {
+      participantName: '老公',
+      menuIds: ['sample-2'],
+      customDishNames: ['小龙虾'],
+    })
+
+    expect(second.id).toBe(first.id)
+    expect(await repository.getMyDiningOrder(invite.id)).toMatchObject({
+      participantName: '我',
+      menuItems: [expect.objectContaining({ id: 'sample-2', name: '清炒时蔬', cookName: '我' })],
+      customDishNames: ['小龙虾'],
+    })
+    expect(await repository.listDiningOrders(invite.id)).toHaveLength(1)
+    expect(await repository.listDiningInvites()).toEqual([
+      expect.objectContaining({ id: invite.id, participantCount: 1, dishCount: 2 }),
+    ])
+  })
 })

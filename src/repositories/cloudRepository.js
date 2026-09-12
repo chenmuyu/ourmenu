@@ -48,5 +48,29 @@ export function createCloudRepository({ wxApi = wx } = {}) {
     deleteWish(id) {
       return call('deleteWish', { id })
     },
+    createDiningInvite(invite) {
+      return call('createDiningInvite', { invite })
+    },
+    getDiningInvite(inviteId) {
+      return call('getDiningInvite', { inviteId })
+    },
+    listDiningInvites() {
+      return call('listDiningInvites')
+    },
+    saveDiningInvite(invite) {
+      return call('saveDiningInvite', { invite })
+    },
+    getMyDiningOrder(inviteId) {
+      return call('getMyDiningOrder', { inviteId })
+    },
+    saveMyDiningOrder(inviteId, order) {
+      return call('saveMyDiningOrder', { inviteId, order })
+    },
+    listDiningOrders(inviteId) {
+      return call('listDiningOrders', { inviteId })
+    },
+    saveDiningOrder(inviteId, order) {
+      return call('saveDiningOrder', { inviteId, order })
+    },
   }
 }
