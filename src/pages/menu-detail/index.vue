@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
+import { accessState, loadAccess } from '../../access/session.js'
+import SteamPlate from '../../components/SteamPlate.vue'
+import { getMenuThumbnail } from '../../domain/menu.js'
 import { repository } from '../../repositories/index.js'
 
 const menuId = ref('')
@@ -11,12 +14,22 @@ const errorMessage = ref('')
 
 const cook = computed(() => kitchen.value.members.find((member) => member.id === menu.value?.cookId))
 const allImages = computed(() => [menu.value?.coverUrl, ...(menu.value?.imageUrls || [])].filter(Boolean))
+const heroImage = computed(() => getMenuThumbnail(menu.value || {}))
+const galleryImages = computed(() => (menu.value?.coverUrl ? menu.value?.imageUrls || [] : (menu.value?.imageUrls || []).slice(1)))
+const group = computed(() => kitchen.value.groups?.find((item) => item.id === menu.value?.groupId))
+const tags = computed(() => kitchen.value.tags?.filter((item) => menu.value?.tagIds?.includes(item.id)) || [])
+const isFamily = computed(() => accessState.role === 'family')
 
 async function loadDetail() {
   if (!menuId.value) return
   loading.value = true
   errorMessage.value = ''
   try {
+    const access = await loadAccess(repository)
+    if (access.role === 'unbound') {
+      uni.reLaunch({ url: '/pages/entry/index' })
+      return
+    }
     const [nextMenu, nextKitchen] = await Promise.all([repository.getMenu(menuId.value), repository.getKitchen()])
     menu.value = nextMenu
     kitchen.value = nextKitchen
@@ -33,6 +46,7 @@ function previewImage(current) {
 }
 
 function editMenu() {
+  if (!isFamily.value) return
   uni.navigateTo({ url: `/pages/menu-edit/index?id=${encodeURIComponent(menuId.value)}` })
 }
 
@@ -51,8 +65,9 @@ onShow(loadDetail)
     </view>
 
     <template v-else-if="menu">
-      <view class="cover-wrap" @tap="previewImage(menu.coverUrl)">
-        <image class="cover-image" :src="menu.coverUrl" mode="aspectFill" />
+      <view class="cover-wrap" :class="{ 'cover-wrap--empty': !heroImage }" @tap="heroImage && previewImage(heroImage)">
+        <image v-if="heroImage" class="cover-image" :src="heroImage" mode="aspectFill" />
+        <view v-else class="cover-placeholder"><SteamPlate /></view>
         <view class="cover-wrap__shade" />
         <view class="cover-wrap__caption">
           <text class="cover-wrap__eyebrow">TODAY'S DISH</text>
@@ -76,16 +91,21 @@ onShow(loadDetail)
           </view>
         </view>
 
+        <view v-if="group || tags.length" class="taxonomy-row">
+          <text v-if="group" class="taxonomy-chip taxonomy-chip--group">{{ group.name }}</text>
+          <text v-for="tag in tags" :key="tag.id" class="taxonomy-chip">{{ tag.name }}</text>
+        </view>
+
         <view v-if="menu.note" class="note-card">
           <text class="section-title">这次记下</text>
           <text class="note-card__text">{{ menu.note }}</text>
         </view>
 
-        <view v-if="menu.imageUrls?.length" class="gallery-section">
+        <view v-if="galleryImages.length" class="gallery-section">
           <text class="section-title">更多照片</text>
           <view class="gallery-grid">
             <image
-              v-for="imageUrl in menu.imageUrls"
+              v-for="imageUrl in galleryImages"
               :key="imageUrl"
               class="gallery-grid__image"
               :src="imageUrl"
@@ -95,7 +115,7 @@ onShow(loadDetail)
           </view>
         </view>
 
-        <button class="edit-button" @tap="editMenu">编辑这道菜</button>
+        <button v-if="isFamily" class="edit-button" @tap="editMenu">编辑这道菜</button>
       </view>
     </template>
   </view>
@@ -105,7 +125,7 @@ onShow(loadDetail)
 .detail-page {
   min-height: 100vh;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
-  background: #e8ddc9;
+  background: linear-gradient(150deg, #fff9f5, #ffe4df);
 }
 
 .page-state {
@@ -138,6 +158,23 @@ onShow(loadDetail)
 .cover-image {
   width: 100%;
   height: 100%;
+}
+
+.cover-wrap--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #fff9f5, #ffdcd5);
+}
+
+.cover-placeholder {
+  width: 210rpx;
+  height: 210rpx;
+  padding: 42rpx;
+  background: rgba(255, 255, 255, 0.62);
+  border: 3rpx solid rgba(255, 255, 255, 0.86);
+  border-radius: 50%;
+  box-shadow: 0 24rpx 44rpx rgba(185, 68, 91, 0.15);
 }
 
 .cover-wrap__shade {
@@ -190,6 +227,26 @@ onShow(loadDetail)
   justify-content: space-between;
   padding-bottom: 34rpx;
   border-bottom: 2rpx solid var(--line);
+}
+
+.taxonomy-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 30rpx;
+}
+
+.taxonomy-chip {
+  padding: 12rpx 20rpx;
+  color: var(--red-dark);
+  background: #fff0ec;
+  border-radius: 25rpx 9rpx 25rpx 9rpx;
+  font-size: 21rpx;
+}
+
+.taxonomy-chip--group {
+  color: #fff;
+  background: var(--ink);
 }
 
 .cook-chip {

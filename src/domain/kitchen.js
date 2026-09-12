@@ -53,3 +53,30 @@ export function normalizeKitchen(kitchen = {}) {
     tags: normalizeOptions(kitchen.tags, DEFAULT_TAGS),
   }
 }
+
+export function addManagedOption(items = [], name, prefix, timestamp = Date.now()) {
+  const normalizedName = String(name || '').trim()
+  if (!normalizedName) throw new Error('名称不能为空')
+  if (items.some((item) => String(item.name || '').trim() === normalizedName)) {
+    throw new Error('这个名称已经存在')
+  }
+  return [
+    ...items.map((item) => ({ ...item })),
+    { id: `${prefix}-${timestamp}`, name: normalizedName, active: true, order: items.length },
+  ]
+}
+
+export function moveManagedOption(items = [], index, direction) {
+  const target = index + direction
+  if (index < 0 || target < 0 || index >= items.length || target >= items.length) {
+    return items.map((item) => ({ ...item }))
+  }
+  const next = items.map((item) => ({ ...item }))
+  const [item] = next.splice(index, 1)
+  next.splice(target, 0, item)
+  return next.map((current, order) => ({ ...current, order }))
+}
+
+export function toggleManagedOption(items = [], id) {
+  return items.map((item) => (item.id === id ? { ...item, active: item.active === false } : { ...item }))
+}

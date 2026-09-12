@@ -20,6 +20,25 @@
       }
     },
     {
+      "path": "pages/wish-home/index",
+      "style": {
+        "navigationStyle": "custom",
+        "enableShareAppMessage": true
+      }
+    },
+    {
+      "path": "pages/wish-detail/index",
+      "style": {
+        "navigationBarTitleText": "想吃这个"
+      }
+    },
+    {
+      "path": "pages/wish-edit/index",
+      "style": {
+        "navigationBarTitleText": "记下想吃的"
+      }
+    },
+    {
       "path": "pages/menu-edit/index",
       "style": {
         "navigationBarTitleText": "记录一道菜"

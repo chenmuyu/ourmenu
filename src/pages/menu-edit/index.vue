@@ -1,11 +1,12 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { onBackPress, onLoad } from '@dcloudio/uni-app'
+import { loadAccess } from '../../access/session.js'
 import { validateMenu } from '../../domain/menu.js'
 import { repository } from '../../repositories/index.js'
 import { chooseImages, mergeImagePaths, uploadForCurrentMode } from '../../services/imageService.js'
 
-const kitchen = ref({ members: [] })
+const kitchen = ref({ members: [], groups: [], tags: [] })
 const menuId = ref('')
 const saving = ref(false)
 const loading = ref(true)
@@ -15,6 +16,8 @@ const form = reactive({
   name: '',
   cookId: '',
   cookedAt: new Date().toISOString().slice(0, 10),
+  groupId: 'other',
+  tagIds: [],
   coverUrl: '',
   imageUrls: [],
   note: '',
@@ -24,6 +27,10 @@ const form = reactive({
 const pageTitle = computed(() => (menuId.value ? '编辑这道菜' : '记一道新菜'))
 const selectedCookIndex = computed(() => Math.max(0, kitchen.value.members.findIndex((member) => member.id === form.cookId)))
 const memberNames = computed(() => kitchen.value.members.map((member) => member.name))
+const activeGroups = computed(() => kitchen.value.groups.filter((item) => item.active !== false || item.id === form.groupId))
+const groupNames = computed(() => activeGroups.value.map((group) => group.name))
+const selectedGroupIndex = computed(() => Math.max(0, activeGroups.value.findIndex((group) => group.id === form.groupId)))
+const activeTags = computed(() => kitchen.value.tags.filter((item) => item.active !== false || form.tagIds.includes(item.id)))
 
 function markDirty() {
   dirty.value = true
@@ -32,12 +39,20 @@ function markDirty() {
 async function loadPage(options) {
   loading.value = true
   try {
+    const access = await loadAccess(repository)
+    if (access.role !== 'family') {
+      uni.showToast({ title: '只有家庭成员可以记录菜谱', icon: 'none' })
+      setTimeout(() => uni.reLaunch({ url: '/pages/home/index' }), 300)
+      return
+    }
     kitchen.value = await repository.getKitchen()
     menuId.value = decodeURIComponent(options.id || '')
     if (menuId.value) {
       const current = await repository.getMenu(menuId.value)
       if (!current) throw new Error('这道菜已经不存在了')
       Object.assign(form, current)
+      form.tagIds = Array.isArray(current.tagIds) ? [...current.tagIds] : []
+      form.groupId = current.groupId || 'other'
     } else {
       const cookId = decodeURIComponent(options.cookId || '')
       form.cookId = kitchen.value.members.some((member) => member.id === cookId)
@@ -50,6 +65,18 @@ async function loadPage(options) {
   } finally {
     loading.value = false
   }
+}
+
+function changeGroup(event) {
+  form.groupId = activeGroups.value[Number(event.detail.value)]?.id || 'other'
+  markDirty()
+}
+
+function toggleTag(id) {
+  const index = form.tagIds.indexOf(id)
+  if (index >= 0) form.tagIds.splice(index, 1)
+  else form.tagIds.push(id)
+  markDirty()
 }
 
 function changeCook(event) {
@@ -200,7 +227,30 @@ onBackPress(() => {
       </view>
 
       <view class="field">
-        <text class="field__label">封面图 *</text>
+        <text class="field__label">主食材分组</text>
+        <picker :range="groupNames" :value="selectedGroupIndex" @change="changeGroup">
+          <view class="field__picker">{{ activeGroups[selectedGroupIndex]?.name || '其他' }} <text>⌄</text></view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field__label">菜品标签</text>
+        <view class="tag-options">
+          <button
+            v-for="tag in activeTags"
+            :key="tag.id"
+            class="tag-option"
+            :class="{ 'tag-option--active': form.tagIds.includes(tag.id) }"
+            @tap="toggleTag(tag.id)"
+          >
+            {{ tag.name }}
+          </button>
+        </view>
+        <text class="field__hint">自定义标签请到“小家设置”中添加</text>
+      </view>
+
+      <view class="field">
+        <text class="field__label">封面图（选填）</text>
         <button v-if="!form.coverUrl" class="cover-upload" @tap="chooseCover">
           <text class="cover-upload__plus">＋</text>
           <text>上传成品图</text>
@@ -252,7 +302,7 @@ onBackPress(() => {
 .edit-page {
   min-height: 100vh;
   padding: 28rpx 24rpx calc(56rpx + env(safe-area-inset-bottom));
-  background: #e8ddc9;
+  background: linear-gradient(150deg, #fff9f5, #ffe4df);
 }
 
 .page-state {
@@ -322,8 +372,8 @@ onBackPress(() => {
 .field__textarea {
   width: 100%;
   color: var(--ink);
-  background: #f7efdf;
-  border: 2rpx solid rgba(74, 55, 40, 0.12);
+  background: #fff3ee;
+  border: 2rpx solid rgba(185, 68, 91, 0.12);
   border-radius: 10rpx;
   font-size: 28rpx;
 }
@@ -355,6 +405,38 @@ onBackPress(() => {
 .field__count {
   color: var(--muted);
   font-size: 22rpx;
+}
+
+.field__hint {
+  display: block;
+  margin-top: 15rpx;
+  color: var(--muted);
+  font-size: 20rpx;
+}
+
+.tag-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.tag-option {
+  width: auto;
+  height: 62rpx;
+  margin: 0;
+  padding: 0 24rpx;
+  color: var(--muted);
+  background: #fff3ee;
+  border: 2rpx solid rgba(185, 68, 91, 0.12);
+  border-radius: 31rpx 10rpx 31rpx 10rpx;
+  font-size: 22rpx;
+  line-height: 60rpx;
+}
+
+.tag-option--active {
+  color: #fff;
+  background: var(--red-dark);
+  border-color: var(--red-dark);
 }
 
 .cover-upload {
