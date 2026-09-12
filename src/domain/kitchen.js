@@ -48,6 +48,7 @@ export function normalizeKitchen(kitchen = {}) {
     ...kitchen,
     name: String(kitchen.name || '粤湘情').trim() || '粤湘情',
     backgroundUrl: String(kitchen.backgroundUrl || '').trim(),
+    menuHeroUrl: String(kitchen.menuHeroUrl || kitchen.backgroundUrl || '').trim(),
     members,
     groups: normalizeOptions(kitchen.groups, DEFAULT_GROUPS),
     tags: normalizeOptions(kitchen.tags, DEFAULT_TAGS),

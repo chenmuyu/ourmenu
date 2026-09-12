@@ -9,7 +9,7 @@ import { createHomeSharePayload } from '../../domain/share.js'
 import { repository, repositoryMode } from '../../repositories/index.js'
 
 const statusBarHeight = uni.getWindowInfo?.().statusBarHeight || 24
-const kitchen = ref({ name: '粤湘情', backgroundUrl: '', members: [], groups: [] })
+const kitchen = ref({ name: '粤湘情', menuHeroUrl: '', members: [], groups: [] })
 const menus = ref([])
 const selectedCookId = ref('')
 const selectedGroupId = ref('')
@@ -83,10 +83,12 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
 
 <template>
   <view class="home-page" :style="{ paddingTop: `${statusBarHeight}px` }">
-    <image v-if="kitchen.backgroundUrl" class="page-background" :src="kitchen.backgroundUrl" mode="aspectFill" />
-    <view class="page-wash" />
     <view class="love-bubble love-bubble--one" />
     <view class="love-bubble love-bubble--two">♡</view>
+
+    <view v-if="kitchen.menuHeroUrl" class="menu-hero-image">
+      <image :src="kitchen.menuHeroUrl" mode="aspectFill" />
+    </view>
 
     <view class="home-header">
       <view class="hero-title" aria-label="粤湘情">
@@ -164,19 +166,22 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
     linear-gradient(150deg, #fffdf9 0%, #fff1ed 54%, #ffd9d3 100%);
 }
 
-.page-background,
-.page-wash {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.menu-hero-image {
+  position: relative;
+  z-index: 2;
+  height: 350rpx;
+  margin: 20rpx 28rpx 8rpx;
+  overflow: hidden;
+  background: #ffe6e0;
+  border: 4rpx solid rgba(255, 255, 255, 0.92);
+  border-radius: 48rpx 16rpx 48rpx 16rpx;
+  box-shadow: 0 18rpx 40rpx rgba(111, 50, 66, 0.14);
 }
 
-.page-background { opacity: 0.46; }
-
-.page-wash {
-  background: linear-gradient(180deg, rgba(255, 249, 245, 0.58), rgba(255, 241, 237, 0.87) 48%, #fff3ee 100%);
+.menu-hero-image image {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .home-header {

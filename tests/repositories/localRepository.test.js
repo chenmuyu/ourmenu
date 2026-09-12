@@ -85,19 +85,19 @@ describe('localRepository', () => {
     expect((await repository.getKitchen()).members.map((member) => member.id)).toEqual(['a', 'b'])
   })
 
-  it('保存并重新读取共用底图、食材分组和菜品标签', async () => {
+  it('保存并重新读取菜谱顶图、食材分组和菜品标签', async () => {
     const repository = createLocalRepository({ storage: createMemoryStorage() })
     const kitchen = await repository.getKitchen()
 
     await repository.saveKitchen({
       ...kitchen,
-      backgroundUrl: '/loving-background.jpg',
+      menuHeroUrl: '/menu-hero.jpg',
       groups: [{ id: 'custom', name: '烧烤', active: true, order: 0 }],
       tags: [{ id: 'anniversary', name: '纪念日', active: true, order: 0 }],
     })
 
     expect(await repository.getKitchen()).toMatchObject({
-      backgroundUrl: '/loving-background.jpg',
+      menuHeroUrl: '/menu-hero.jpg',
       groups: [{ id: 'custom', name: '烧烤', active: true, order: 0 }],
       tags: [{ id: 'anniversary', name: '纪念日', active: true, order: 0 }],
     })

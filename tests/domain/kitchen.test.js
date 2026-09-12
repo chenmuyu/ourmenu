@@ -33,6 +33,11 @@ describe('normalizeKitchen', () => {
     expect(kitchen.groups).toEqual([{ id: 'custom', name: '海鲜大餐', active: false, order: 9 }])
     expect(kitchen.tags).toEqual([{ id: 'favorite', name: '纪念日', active: true, order: 8 }])
   })
+
+  it('使用专用菜谱顶图并兼容旧底图数据', () => {
+    expect(normalizeKitchen({ backgroundUrl: '/legacy.jpg' }).menuHeroUrl).toBe('/legacy.jpg')
+    expect(normalizeKitchen({ menuHeroUrl: '/hero.jpg', backgroundUrl: '/legacy.jpg' }).menuHeroUrl).toBe('/hero.jpg')
+  })
 })
 
 describe('managed kitchen options', () => {

@@ -6,7 +6,7 @@ import { addManagedOption, moveManagedOption, toggleManagedOption } from '../../
 import { repository } from '../../repositories/index.js'
 import { chooseImages, uploadForCurrentMode } from '../../services/imageService.js'
 
-const kitchen = ref({ name: '粤湘情', backgroundUrl: '', members: [], groups: [], tags: [] })
+const kitchen = ref({ name: '粤湘情', menuHeroUrl: '', members: [], groups: [], tags: [] })
 const newGroupName = ref('')
 const newTagName = ref('')
 const saving = ref(false)
@@ -50,18 +50,18 @@ async function chooseAvatar(index) {
   }
 }
 
-async function chooseBackground() {
+async function chooseMenuHero() {
   try {
     const result = await chooseAndUpload()
-    if (result.url) kitchen.value.backgroundUrl = result.url
-    if (result.pending) uni.showToast({ title: '底图暂存本机，请稍后重新上传', icon: 'none' })
+    if (result.url) kitchen.value.menuHeroUrl = result.url
+    if (result.pending) uni.showToast({ title: '顶图暂存本机，请稍后重新上传', icon: 'none' })
   } catch (error) {
-    if (!String(error?.errMsg || '').includes('cancel')) uni.showToast({ title: '选择底图失败', icon: 'none' })
+    if (!String(error?.errMsg || '').includes('cancel')) uni.showToast({ title: '选择顶图失败', icon: 'none' })
   }
 }
 
-function resetBackground() {
-  kitchen.value.backgroundUrl = ''
+function resetMenuHero() {
+  kitchen.value.menuHeroUrl = ''
 }
 
 function addOption(type) {
@@ -145,13 +145,13 @@ onLoad(loadPage)
       </view>
 
       <view class="setting-section">
-        <view class="section-heading"><text class="section-heading__number">02</text><view><text class="section-heading__title">页面装扮</text><text class="section-heading__copy">两个主页面共用一张底图</text></view></view>
-        <view class="background-preview" @tap="chooseBackground">
-          <image v-if="kitchen.backgroundUrl" class="background-preview__image" :src="kitchen.backgroundUrl" mode="aspectFill" />
-          <view v-else class="background-preview__default"><view class="preview-bubble preview-bubble--one"/><view class="preview-bubble preview-bubble--two"/><text>奶油泡泡默认底图</text></view>
-          <view class="background-preview__caption">{{ kitchen.backgroundUrl ? '点击更换底图' : '点击上传自己的底图' }}</view>
+        <view class="section-heading"><text class="section-heading__number">02</text><view><text class="section-heading__title">菜谱顶图</text><text class="section-heading__copy">只在菜谱页顶部展示，不会被菜单遮挡</text></view></view>
+        <view class="background-preview" @tap="chooseMenuHero">
+          <image v-if="kitchen.menuHeroUrl" class="background-preview__image" :src="kitchen.menuHeroUrl" mode="aspectFill" />
+          <view v-else class="background-preview__default"><view class="preview-bubble preview-bubble--one"/><view class="preview-bubble preview-bubble--two"/><text>上传一张菜谱顶图</text></view>
+          <view class="background-preview__caption">{{ kitchen.menuHeroUrl ? '点击更换顶图' : '点击上传菜谱顶图' }}</view>
         </view>
-        <button v-if="kitchen.backgroundUrl" class="text-button" @tap="resetBackground">恢复默认底图</button>
+        <button v-if="kitchen.menuHeroUrl" class="text-button" @tap="resetMenuHero">移除菜谱顶图</button>
       </view>
 
       <view class="setting-section">

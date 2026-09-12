@@ -7,7 +7,6 @@ import { getWishThumbnail, sortWishes, WISH_STATUSES } from '../../domain/wish.j
 import { repository } from '../../repositories/index.js'
 
 const statusBarHeight = uni.getWindowInfo?.().statusBarHeight || 24
-const kitchen = ref({ backgroundUrl: '' })
 const wishes = ref([])
 const selectedStatus = ref('want')
 const loading = ref(true)
@@ -27,9 +26,7 @@ async function loadPage() {
       uni.reLaunch({ url: '/pages/entry/index' })
       return
     }
-    const [nextKitchen, nextWishes] = await Promise.all([repository.getKitchen(), repository.listWishes()])
-    kitchen.value = nextKitchen
-    wishes.value = nextWishes
+    wishes.value = await repository.listWishes()
   } catch (error) {
     errorMessage.value = error?.message || '想吃清单加载失败'
   } finally {
@@ -53,8 +50,6 @@ onShareAppMessage(() => ({ title: '老公我要吃这个！', path: '/pages/entr
 
 <template>
   <view class="wish-page" :style="{ paddingTop: `${statusBarHeight}px` }">
-    <image v-if="kitchen.backgroundUrl" class="page-background" :src="kitchen.backgroundUrl" mode="aspectFill" />
-    <view class="page-wash" />
     <view class="wish-bubble wish-bubble--one">♡</view>
     <view class="wish-bubble wish-bubble--two" />
 
@@ -114,18 +109,6 @@ onShareAppMessage(() => ({ title: '老公我要吃这个！', path: '/pages/entr
   overflow: hidden;
   background: linear-gradient(155deg, #fffdfb, #ffe8e2 58%, #ffd5d2);
 }
-
-.page-background,
-.page-wash {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.page-background { opacity: 0.4; }
-.page-wash { background: linear-gradient(180deg, rgba(255, 245, 242, 0.64), rgba(255, 230, 225, 0.91) 52%, #fff1ed); }
 
 .wish-hero {
   position: relative;

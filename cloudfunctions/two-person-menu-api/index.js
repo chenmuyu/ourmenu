@@ -51,6 +51,7 @@ function defaultKitchen() {
     slug: KITCHEN_SLUG,
     name: '粤湘情',
     backgroundUrl: '',
+    menuHeroUrl: '',
     members: [
       { id: 'cook-a', name: '我', avatarUrl: '', openid: '' },
       { id: 'cook-b', name: '老公', avatarUrl: '', openid: '' },
@@ -78,6 +79,7 @@ function publicKitchen(kitchen) {
     id: kitchen._id,
     name: kitchen.name || '粤湘情',
     backgroundUrl: kitchen.backgroundUrl || '',
+    menuHeroUrl: kitchen.menuHeroUrl || kitchen.backgroundUrl || '',
     members: publicMembers(kitchen.members || []),
     groups: normalizeOptions(kitchen.groups, DEFAULT_GROUPS),
     tags: normalizeOptions(kitchen.tags, DEFAULT_TAGS),
@@ -268,7 +270,8 @@ async function handle(action, payload, openid) {
 
     const data = {
       name: String(input.name || '粤湘情').trim() || '粤湘情',
-      backgroundUrl: String(input.backgroundUrl || '').trim(),
+      backgroundUrl: '',
+      menuHeroUrl: String(input.menuHeroUrl || '').trim(),
       members,
       groups: normalizeOptions(input.groups, kitchen.groups || DEFAULT_GROUPS),
       tags: normalizeOptions(input.tags, kitchen.tags || DEFAULT_TAGS),
