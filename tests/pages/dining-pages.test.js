@@ -6,6 +6,7 @@ const homeSource = readFileSync(new URL('../../src/pages/home/index.vue', import
 const createSource = readFileSync(new URL('../../src/pages/dining-create/index.vue', import.meta.url), 'utf8')
 const recordsSource = readFileSync(new URL('../../src/pages/dining-records/index.vue', import.meta.url), 'utf8')
 const orderSource = readFileSync(new URL('../../src/pages/dining-order/index.vue', import.meta.url), 'utf8')
+const manageSource = readFileSync(new URL('../../src/pages/dining-manage/index.vue', import.meta.url), 'utf8')
 
 describe('点菜邀请页面', () => {
   it('注册四个独立页面且不增加底部标签', () => {
@@ -74,5 +75,26 @@ describe('点菜邀请页面', () => {
     expect(orderSource).toContain('onShareAppMessage')
     expect(orderSource).toContain('欢迎来到粤湘情小菜馆')
     expect(orderSource).toContain('/pages/dining-order/index?id=')
+  })
+
+  it('主人管理邀请资料、聚餐图片和参与人的点菜单', () => {
+    expect(manageSource).toContain("access.role !== 'family'")
+    expect(manageSource).toContain('repository.getDiningInvite')
+    expect(manageSource).toContain('repository.listDiningOrders')
+    expect(manageSource).toContain('repository.saveDiningInvite')
+    expect(manageSource).toContain('repository.saveDiningOrder')
+    expect(manageSource).toContain('v-model="form.theme"')
+    expect(manageSource).toContain('mode="date"')
+    expect(manageSource).toContain('order.menuItems')
+    expect(manageSource).toContain('order.customDishNames')
+  })
+
+  it('主人管理页上传整次聚餐图片并分享点菜入口', () => {
+    expect(manageSource).toContain('chooseImages')
+    expect(manageSource).toContain('uploadForCurrentMode')
+    expect(manageSource).toContain('mergeImagePaths')
+    expect(manageSource).toContain('open-type="share"')
+    expect(manageSource).toContain('欢迎来到粤湘情小菜馆')
+    expect(manageSource).toContain('/pages/dining-order/index?id=')
   })
 })
