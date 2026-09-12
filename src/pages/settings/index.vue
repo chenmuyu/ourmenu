@@ -145,7 +145,7 @@ onLoad(loadPage)
       </view>
 
       <view class="setting-section">
-        <view class="section-heading"><text class="section-heading__number">02</text><view><text class="section-heading__title">菜谱顶图</text><text class="section-heading__copy">只在菜谱页顶部展示，不会被菜单遮挡</text></view></view>
+        <view class="section-heading"><text class="section-heading__number">02</text><view><text class="section-heading__title">菜谱顶图</text><text class="section-heading__copy">菜谱页顶部的半透明氛围图，不占页面位置</text></view></view>
         <view class="background-preview" @tap="chooseMenuHero">
           <image v-if="kitchen.menuHeroUrl" class="background-preview__image" :src="kitchen.menuHeroUrl" mode="aspectFill" />
           <view v-else class="background-preview__default"><view class="preview-bubble preview-bubble--one"/><view class="preview-bubble preview-bubble--two"/><text>上传一张菜谱顶图</text></view>

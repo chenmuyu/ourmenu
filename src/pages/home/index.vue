@@ -86,9 +86,8 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
     <view class="love-bubble love-bubble--one" />
     <view class="love-bubble love-bubble--two">♡</view>
 
-    <view v-if="kitchen.menuHeroUrl" class="menu-hero-image">
-      <image :src="kitchen.menuHeroUrl" mode="aspectFill" />
-    </view>
+    <image v-if="kitchen.menuHeroUrl" class="menu-hero-background" :src="kitchen.menuHeroUrl" mode="aspectFill" />
+    <view v-if="kitchen.menuHeroUrl" class="menu-hero-wash" />
 
     <view class="home-header">
       <view class="hero-title" aria-label="粤湘情">
@@ -166,22 +165,24 @@ onShareAppMessage(() => createHomeSharePayload('粤湘情'))
     linear-gradient(150deg, #fffdf9 0%, #fff1ed 54%, #ffd9d3 100%);
 }
 
-.menu-hero-image {
-  position: relative;
-  z-index: 2;
-  height: 350rpx;
-  margin: 20rpx 28rpx 8rpx;
-  overflow: hidden;
-  background: #ffe6e0;
-  border: 4rpx solid rgba(255, 255, 255, 0.92);
-  border-radius: 48rpx 16rpx 48rpx 16rpx;
-  box-shadow: 0 18rpx 40rpx rgba(111, 50, 66, 0.14);
+.menu-hero-background,
+.menu-hero-wash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 390rpx;
+  pointer-events: none;
 }
 
-.menu-hero-image image {
-  display: block;
-  width: 100%;
-  height: 100%;
+.menu-hero-background {
+  z-index: 0;
+  opacity: 0.46;
+}
+
+.menu-hero-wash {
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255, 250, 247, 0.2), rgba(255, 244, 239, 0.56) 62%, #fff2ed 100%);
 }
 
 .home-header {
