@@ -12,6 +12,12 @@ export function createCloudRepository({ wxApi = wx } = {}) {
   }
 
   return {
+    getAccessState() {
+      return call('getAccessState')
+    },
+    bindFamily(code) {
+      return call('bindFamily', { code })
+    },
     getKitchen() {
       return call('getKitchen')
     },
@@ -29,6 +35,18 @@ export function createCloudRepository({ wxApi = wx } = {}) {
     },
     deleteMenu(id) {
       return call('deleteMenu', { id })
+    },
+    listWishes() {
+      return call('listWishes')
+    },
+    getWish(id) {
+      return call('getWish', { id })
+    },
+    saveWish(wish) {
+      return call('saveWish', { wish })
+    },
+    deleteWish(id) {
+      return call('deleteWish', { id })
     },
   }
 }

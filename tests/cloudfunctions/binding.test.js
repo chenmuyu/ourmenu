@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { bindFamilyMember, publicMembers, resolveAccess } = require('../../cloudfunctions/two-person-menu-api/binding.js')
+const { assertCanWrite, bindFamilyMember, publicMembers, resolveAccess } = require('../../cloudfunctions/two-person-menu-api/binding.js')
 
 function kitchen(openids = ['', '']) {
   return {
@@ -59,5 +59,12 @@ describe('publicMembers', () => {
       { id: 'cook-a', name: '我', avatarUrl: '', bound: true },
       { id: 'cook-b', name: '老公', avatarUrl: '', bound: true },
     ])
+  })
+})
+
+describe('assertCanWrite', () => {
+  it('家庭成员可以写入，客人会被云端拒绝', () => {
+    expect(() => assertCanWrite({ role: 'family' })).not.toThrow()
+    expect(() => assertCanWrite({ role: 'guest' })).toThrow('只有家庭成员可以进行这个操作')
   })
 })

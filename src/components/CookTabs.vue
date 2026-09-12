@@ -47,8 +47,8 @@ function initial(name) {
   margin: 0;
   padding: 18rpx 24rpx;
   color: var(--muted);
-  background: #dfd2bd;
-  border: 2rpx solid rgba(74, 55, 40, 0.16);
+  background: rgba(255, 213, 207, 0.88);
+  border: 2rpx solid rgba(185, 68, 91, 0.14);
   border-bottom: 0;
   border-radius: 28rpx 28rpx 0 0;
   line-height: 1;
@@ -63,9 +63,9 @@ function initial(name) {
   z-index: 3;
   height: 148rpx;
   color: var(--ink);
-  background: var(--paper);
-  border-color: rgba(74, 55, 40, 0.28);
-  box-shadow: 0 -12rpx 28rpx rgba(74, 56, 36, 0.08);
+  background: rgba(255, 253, 249, 0.96);
+  border-color: rgba(185, 68, 91, 0.2);
+  box-shadow: 0 -12rpx 28rpx rgba(111, 50, 66, 0.1);
 }
 
 .cook-tab__avatar {

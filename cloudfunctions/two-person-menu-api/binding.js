@@ -32,4 +32,8 @@ function publicMembers(members = []) {
   return members.map(({ openid, ...member }) => ({ ...member, bound: Boolean(openid) }))
 }
 
-module.exports = { FAMILY_CODE, bindFamilyMember, publicMembers, resolveAccess }
+function assertCanWrite(access) {
+  if (access.role !== 'family') throw new Error('只有家庭成员可以进行这个操作')
+}
+
+module.exports = { FAMILY_CODE, assertCanWrite, bindFamilyMember, publicMembers, resolveAccess }

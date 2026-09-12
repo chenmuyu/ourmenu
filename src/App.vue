@@ -14,8 +14,8 @@ export default {
 <style lang="scss">
 page {
   min-height: 100%;
-  background: #efe7d6;
-  color: #302a24;
+  background: #fff9f5;
+  color: #542b35;
 }
 
 view,

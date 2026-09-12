@@ -1,10 +1,12 @@
 <script setup>
 import { getMenuThumbnail } from '../domain/menu.js'
+import SteamPlate from './SteamPlate.vue'
 
 defineProps({
   menus: { type: Array, default: () => [] },
   cookName: { type: String, default: '' },
   loading: { type: Boolean, default: false },
+  emptyCopy: { type: String, default: '记下第一道菜吧' },
 })
 
 const emit = defineEmits(['open'])
@@ -22,7 +24,7 @@ const emit = defineEmits(['open'])
     <view v-else-if="menus.length === 0" class="menu-book__state">
       <text class="menu-book__empty-mark">✦</text>
       <text class="menu-book__state-title">{{ cookName }}还没有菜单</text>
-      <text class="menu-book__state-copy">记下第一道菜吧</text>
+      <text class="menu-book__state-copy">{{ emptyCopy }}</text>
     </view>
 
     <view v-else class="menu-book__list">
@@ -34,7 +36,7 @@ const emit = defineEmits(['open'])
           :src="getMenuThumbnail(menu)"
           mode="aspectFill"
         />
-        <view v-else class="menu-row__thumbnail menu-row__thumbnail--empty">菜</view>
+        <view v-else class="menu-row__thumbnail menu-row__thumbnail--empty"><SteamPlate /></view>
       </button>
     </view>
   </view>
@@ -50,7 +52,7 @@ const emit = defineEmits(['open'])
   background:
     linear-gradient(90deg, transparent 0, rgba(91, 69, 45, 0.035) 50%, transparent 100%),
     var(--paper);
-  border: 2rpx solid rgba(74, 55, 40, 0.28);
+  border: 2rpx solid rgba(185, 68, 91, 0.16);
   border-radius: 0 0 28rpx 28rpx;
   box-shadow: 0 22rpx 50rpx var(--shadow);
 }
@@ -134,12 +136,8 @@ const emit = defineEmits(['open'])
 }
 
 .menu-row__thumbnail--empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(185, 65, 52, 0.55);
-  font-family: 'STSong', 'Songti SC', serif;
-  font-size: 24rpx;
+  overflow: hidden;
+  background: linear-gradient(145deg, #fffdf9, #ffe8e3);
 }
 
 .menu-book__state {
